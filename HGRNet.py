@@ -11,11 +11,7 @@ from loss import SupConLoss, scl
 
 
 class eca_layer(nn.Module):
-    """Constructs a ECA module.
-    Args:
-        channel: Number of channels of the input feature map
-        k_size: Adaptive selection of kernel size
-    """
+
     def __init__(self, k_size=3):
         super(eca_layer, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
@@ -25,13 +21,13 @@ class eca_layer(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        # feature descriptor on the global spatial information
+
         y_1 = self.avg_pool(x)
         y_2 = self.max_pool(x)
-        # Two different branches of ECA module
+
         y_1 = self.conv1(y_1.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
         y_2 = self.conv2(y_2.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
-        # Multi-scale information fusion
+
         y_1 = self.sigmoid(y_1)
         y_2 = self.sigmoid(y_2)
         return x * y_1.expand_as(x) * y_2.expand_as(x)+x
@@ -125,14 +121,12 @@ class TCB(nn.ModuleDict):
         self.in_channels = sum(in_splits)
         self.out_channels = sum(out_splits)
 
-        self.convs = nn.ModuleList()  # 用于存储卷积层
-        self.atts = nn.ModuleList()  # 用于存储卷积层
+        self.convs = nn.ModuleList()
+        self.atts = nn.ModuleList()
         for idx, (k, in_ch, out_ch) in enumerate(zip(kernel_size, in_splits, out_splits)):
             self.convs.append(GhostModule(in_ch, out_ch, kernel_size=k, dw_size=k))
             self.atts.append(eca_layer())
-            # self.atts.append(SCSA(out_ch))
-            # SCSA
-            # nn.Conv2d(in_ch, out_ch, k, padding='same', bias=False)
+
 
         self.splits = in_splits
 
@@ -148,12 +142,12 @@ class TCB(nn.ModuleDict):
 
 class hgrnet(nn.Module):
     def __init__(self, nChan, nClass, num_feat=16, dilatability=16):
-        # input_size: channel x datapoint
+
         super(hgrnet, self).__init__()
         if nChan == 256:
             self.dim_change = nn.Conv1d(nChan, 16, 1, bias=False)
             nChan = 16
-        # self.sinc_conv = sinc_conv(N_filt=16, Filt_dim=31, fs=1000, device=self.device)
+
         self.first_cov = nn.Conv2d(1, num_feat, 1, bias=False)
         self.TCB = nn.Sequential(
             TCB(in_channels=num_feat, out_channels=num_feat*2, kernel_size=[(1,7), (1,14), (1,21), (1,28)]),
@@ -177,7 +171,7 @@ class hgrnet(nn.Module):
         )
 
     def forward(self, x):
-        # x = x.to(torch.float32)
+
         if x.shape[1] == 256:
             x = self.dim_change(x)
         x = torch.unsqueeze(x, dim=1)
@@ -203,8 +197,7 @@ def HGRNet(args, total_data):
     label_val = data_val['label']
     emg_test = data_test['emg']
     label_test = data_test['label']
-    # plot_emg_samples(emg_train[0:5])
-    # plt.show()
+
     train_dataset = MyDataset(emg_train, label_train)
     val_dataset = MyDataset(emg_val, label_val)
     test_dataset = MyDataset(emg_test, label_test)
@@ -228,26 +221,24 @@ def HGRNet(args, total_data):
         raise NotImplementedError
 
     total_epochs = 50
-    # Define data loaders for training and testing data in this fold
+
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=4, pin_memory=True)
     vali_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=4, pin_memory=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=4, pin_memory=True)
 
-    # Init the neural network
     model = hgrnet(nChan=n_features, nClass=n_classes).float().to(device)
     criteria = nn.CrossEntropyLoss()
     contrastive_loss = SupConLoss(device).to(device)
-    # Initialize optimizer
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    # scheduler = WarmupCosineAnnealingLR(optimizer, total_epochs, warmup_steps=5)
-    # early_stopping = EarlyStopping(patience=10, min_delta=0, path=path)
+
     scheduler = StepLR(optimizer, step_size=20, gamma=0.8)
     best_val_loss = float('inf')
-    # Run the training loop for defined number of epochs
+
     train_losses = []
     val_losses = []
     for epoch in range(0, total_epochs):
-        # Training
+
         model.train()
         running_loss = 0.0
         for batch_idx, (emg, label) in enumerate(train_loader):
@@ -266,7 +257,7 @@ def HGRNet(args, total_data):
         train_losses.append(epoch_loss)
 
         scheduler.step()
-        # Validation
+
         model.eval()
         val_loss = 0.0
         for i, (inputs, labels) in enumerate(vali_loader):
@@ -279,16 +270,11 @@ def HGRNet(args, total_data):
             val_loss += loss.item() * emg.size(0)
         val_loss = val_loss / len(vali_loader.dataset)
         val_losses.append(val_loss)
-        # print(epoch, val_loss)
+
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), path)
-        # print(epoch, val_loss, optimizer.state_dict()['param_groups'][0]['lr'])
-    #     early_stopping(np.mean(val_loss), model)
-    #     if early_stopping.early_stop:
-    #         break
-    # early_stopping.load_best_model(model)
-    # save_loss_curve(train_losses, val_losses, save_path='loss_curve.png')
+
     model.load_state_dict(torch.load(path))
     model.eval()
     all_preds = []
@@ -304,8 +290,7 @@ def HGRNet(args, total_data):
             feature_list.extend(feature.cpu().numpy())
     accuracy = accuracy_score(all_targets, all_preds)
     print(accuracy)
-    np.save('intra_feature.npy', np.array(feature_list))
-    np.save('intra_label.npy',np.array(all_targets))
+
 
 if __name__ == "__main__":
     from calflops import calculate_flops
