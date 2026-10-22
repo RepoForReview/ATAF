@@ -33,12 +33,6 @@ from tl_strategies.lp_inter_device import lp_inter_device
 from tl_strategies.cadapter_inter_device import cadapter_inter_device
 from tl_strategies.gdadapter_inter_device import gdadapter_inter_device
 
-from device_ablation.gdadapter_fpt_inter_device import gdadapter_fpt_inter_device
-from device_ablation.gdadapter_bt_inter_device import gdadapter_bt_inter_device
-from device_ablation.gdadapter_cadapter_inter_device import gdadapter_cadapter_inter_device
-
-
-
 
 def seed_everything(seed=6718):
     random.seed(seed)  # Python random module
@@ -76,19 +70,6 @@ if __name__ == '__main__':
     seed_everything(args.random_seed)
     create_files(args)
 
-
-    # if args.ablation_mode == "wo_a":
-    #     from model_ablation.HGRNet_wo_a import HGRNet
-    # elif args.ablation_mode == "wo_b":
-    #     from model_ablation.HGRNet_wo_b import HGRNet
-    # elif args.ablation_mode == "wo_ab":
-    #     from model_ablation.HGRNet_wo_ab import HGRNet
-    # else:
-    #     from backbone.HGRNet import HGRNet
-
-    # create files
-
-    # loading data
     if args.dataset == 'Hyser':
         total_data = Hyser_signal_dataload(args)
     elif args.dataset == 'Ninapro':
@@ -150,14 +131,6 @@ if __name__ == '__main__':
             cadapter_inter_device(args, total_data)
         elif args.tl_strategy == 'gdadapter':
             gdadapter_inter_device(args, total_data)
-
-        elif args.tl_strategy == 'fpt_gdadapter':
-            gdadapter_fpt_inter_device(args, total_data)
-        elif args.tl_strategy == 'bt_gdadapter':
-            gdadapter_bt_inter_device(args, total_data)
-        elif args.tl_strategy == 'cadapter_gdadapter':
-            gdadapter_cadapter_inter_device(args, total_data)
-
         else:
             raise NotImplementedError
     else:
