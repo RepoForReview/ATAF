@@ -1,8 +1,6 @@
-# ATAF: Adapter-Based Task Adaptation for sEMG Hand Gesture Recognition
+# ATAF
 
-Anonymous code repository for the manuscript on parameter-efficient supervised transfer learning for surface electromyography (sEMG) hand gesture recognition.
-
-ATAF combines the HGRNet backbone with GDAdapter for adaptation across subjects and acquisition devices. This README describes the project layout, data interfaces, experimental configurations, training commands, statistical analysis and checkpoint requirements.
+Anonymous code repository for the manuscript submitted to EAAI.
 
 Repository: [RepoForReview/ATAF](https://github.com/RepoForReview/ATAF).
 
@@ -258,10 +256,6 @@ checkpoints/intra-subject/Hyser/HGRNet/P2/best_model.pth
 checkpoints/intra-subject/Ninapro/HGRNet/P1/best_model.pth
 checkpoints/intra-subject/Senic/HGRNet/P0/best_model.pth
 ```
-
-Each transfer command loads the checkpoint identified by its source dataset and source participant. Full round-robin and repeated cross-device reproduction requires **every source checkpoint used in those pairing lists**, not just one representative checkpoint per dataset. Missing source checkpoints can be regenerated with the intra-subject commands in Section 5.1.
-
-Checkpoints contain PyTorch `state_dict` objects. Match the architecture and source label/channel configuration when loading them. A release checkpoint index should list the file path/download link, source dataset/subject, model configuration and SHA-256 checksum. Preserve the participant/seed configuration alongside any checkpoints used for the reported tables.
 
 ## 8. Permanent availability
 
