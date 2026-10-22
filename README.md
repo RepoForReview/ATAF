@@ -241,6 +241,21 @@ summary = data.agg(["mean", "std"]).T  # std uses sample SD (ddof=1)
 print(summary)
 ```
 
+
+### Comparison families
+
+The following explicit scopes correspond to the proposed reporting in the revised manuscript. Verify that the final exported p-values and figure annotations were generated using these scopes before publication.
+
+| Analysis | Reference/comparison | One BH family | Number of tests |
+|---|---|---|---:|
+| Fig. 5 | HGRNet vs competing models | One dataset | 8 |
+| Table 1 | GDAdapter-A vs competing methods | One dataset | 7 |
+| Table 3 | GDAdapter-A vs FPT, LP, BT, Conv-Adapter | One direction | 4 |
+| Table 4 | Full HGRNet vs three variants | One dataset | 3 |
+| Fig. 11 | Each baseline with vs without GDAdapter | One direction | 3 |
+| Table 5 / Fig. 15 | Three pretrained models vs Scratch | One outcome | 3 |
+
+
 ## 7. Checkpoints
 
 Source-model checkpoints are expected at:
